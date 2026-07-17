@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}CinemaFlow{% endblock %}
+
+{% block content %}
+<section class="hero-section py-5">
+    <div class="container">
+        <div class="hero-shell">
+            <div class="row g-4 align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-copy">
+                        <span class="eyebrow">Cinema tonight</span>
+                        <h1 class="hero-title">Сеанси, зали та бронювання без зайвої метушні.</h1>
+                        <p class="hero-text">На головній зібране все найважливіше: що зараз на екрані, які покази стартують далі, і які фільми зараз у прокаті.</p>
+                        <div class="hero-actions d-flex flex-wrap gap-3">
+                            <a href="{% url 'cinema:movie_list' %}" class="btn btn-light btn-lg">Відкрити афішу</a>
+                            {% if user.is_authenticated and not user.is_staff %}
+                            <a href="{% url 'dashboard:profile' %}" class="btn btn-outline-light btn-lg">Мій профіль</a>
+                            {% elif user.is_authenticated and user.is_staff %}
+                            <a href="{% url 'dashboard:staff_bookings' %}" class="btn btn-outline-light btn-lg">Панель бронювань</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-media">
+                        <img src="{% static 'img/hero.png' %}" alt="Cinema hall" class="hero-image">
+                        <div class="hero-overlay-card">
+                            <div class="hero-stat">
+                                <span>Фільмів</span>
+                                <strong>{{ movie_count }}</strong>
+                            </div>
+                            <div class="hero-stat">
+                                <span>Активних сеансів</span>
+                                <strong>{{ upcoming_sessions|length }}</strong>
+                            </div>
+                            <div class="hero-stat">
+                                <span>Залів</span>
+                                <strong>{{ hall_count }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content-section py-4 py-lg-5">
+    <div class="container">
+        <div class="row g-4 mt-1">
+            <div class="col-lg-5">
+                <div class="info-panel h-100 dark-panel">
+                    <div class="section-head compact-head">
+                        <h2>Зараз на екрані</h2>
+                        <p>{% if now_playing %}Фільми, які йдуть прямо в цей момент.{% else %}Активного показу зараз немає.{% endif %}</p>
+                    </div>
+                    <div class="d-grid gap-3">
+                        {% for session in now_playing %}
+                        <a href="{% url 'cinema:movie_detail' session.movie_id %}" class="showcase-card text-decoration-none">
+                            <div class="showcase-meta">
+                                <span class="session-pill live-pill">Now</span>
+                                <span>{{ session.hall.name }}</span>
+                                {% if session.format_name %}<span>{{ session.format_name }}</span>{% endif %}
+                            </div>
+                            <h3>{{ session.movie.title }}</h3>
+                            <div class="showcase-bottom">
+                                <span>{{ session.start_at|date:"H:i" }}</span>
+                                <strong>{{ session.price }} грн</strong>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="empty-state compact-empty">Поглянь блок “Далі сьогодні” нижче.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="info-panel h-100">
+                    <div class="section-head compact-head">
+                        <h2>Далі сьогодні</h2>
+                        <p>Найближчі покази по двох залах для швидкого вибору.</p>
+                    </div>
+                    <div class="timeline-grid">
+                        {% for session in today_sessions %}
+                        <a href="{% url 'cinema:movie_detail' session.movie_id %}" class="timeline-card text-decoration-none">
+                            <div class="timeline-time">{{ session.start_at|date:"H:i" }}</div>
+                            <div class="timeline-content">
+                                <h3>{{ session.movie.title }}</h3>
+                                <div class="timeline-meta">{{ session.hall.name }}{% if session.format_name %} • {{ session.format_name }}{% endif %}</div>
+                            </div>
+                            <div class="timeline-price">{{ session.price }} грн</div>
+                        </a>
+                        {% empty %}
+                        {% for session in upcoming_sessions %}
+                        <a href="{% url 'cinema:movie_detail' session.movie_id %}" class="timeline-card text-decoration-none">
+                            <div class="timeline-time">{{ session.start_at|date:"d.m H:i" }}</div>
+                            <div class="timeline-content">
+                                <h3>{{ session.movie.title }}</h3>
+                                <div class="timeline-meta">{{ session.hall.name }}{% if session.format_name %} • {{ session.format_name }}{% endif %}</div>
+                            </div>
+                            <div class="timeline-price">{{ session.price }} грн</div>
+                        </a>
+                        {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-1">
+            <div class="col-lg-8">
+                <div class="info-panel h-100">
+                    <div class="section-head compact-head">
+                        <h2>У прокаті зараз</h2>
+                        <p>Короткий огляд актуальних фільмів. Повний список відкривається на окремій сторінці афіші.</p>
+                    </div>
+                    <div class="row g-3">
+                        {% for movie in feature_movies %}
+                        <div class="col-md-6">
+                            <a href="{{ movie.get_absolute_url }}" class="feature-movie text-decoration-none">
+                                {% if movie.poster_url %}
+                                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="feature-poster">
+                                {% endif %}
+                                <div class="feature-body">
+                                    <div class="feature-meta">{{ movie.genre.name }} • {{ movie.age_rating }}</div>
+                                    <h3>{{ movie.title }}</h3>
+                                    <p>{{ movie.description|truncatechars:120 }}</p>
+                                    <span class="feature-link">Деталі та сеанси</span>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="info-panel h-100 side-cta">
+                    <div class="section-head compact-head">
+                        <h2>Швидкий перехід</h2>
+                        <p>Окрема сторінка афіші з фільтрами по жанру, залу та даті.</p>
+                    </div>
+                    <a href="{% url 'cinema:movie_list' %}" class="btn btn-primary btn-lg w-100 mb-3">Відкрити афішу</a>
+                    <div class="mini-stat-list">
+                        <div class="mini-stat">
+                            <span>Доступно фільмів</span>
+                            <strong>{{ movie_count }}</strong>
+                        </div>
+                        <div class="mini-stat">
+                            <span>Сьогоднішні слоти</span>
+                            <strong>{{ today_sessions|length }}</strong>
+                        </div>
+                        <div class="mini-stat">
+                            <span>Залів у системі</span>
+                            <strong>{{ hall_count }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

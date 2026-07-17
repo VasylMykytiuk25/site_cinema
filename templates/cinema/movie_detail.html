@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ movie.title }} | CinemaFlow{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-4">
+                {% if movie.poster_url %}
+                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="img-fluid detail-poster">
+                {% else %}
+                <div class="detail-poster placeholder-poster d-flex align-items-center justify-content-center">Немає постера</div>
+                {% endif %}
+            </div>
+            <div class="col-lg-8">
+                <span class="badge text-bg-warning mb-3">{{ movie.genres_text|default:movie.genre.name }}</span>
+                <h1 class="display-6 fw-bold mb-3">{{ movie.title }}</h1>
+                <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+                    <div class="info-tile"><span>Тривалість</span><strong>{{ movie.duration_minutes }} хв</strong></div>
+                    <div class="info-tile"><span>Премʼєра</span><strong>{{ movie.release_date|date:"d.m.Y" }}</strong></div>
+                    <div class="info-tile"><span>Вік</span><strong>{{ movie.age_rating }}</strong></div>
+                    <div class="info-tile"><span>Рік</span><strong>{{ movie.release_year|default:"-" }}</strong></div>
+                </div>
+                {% if movie.director or movie.starring %}
+                <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+                    {% if movie.director %}
+                    <div class="info-tile"><span>Режисер</span><strong>{{ movie.director }}</strong></div>
+                    {% endif %}
+                    {% if movie.starring %}
+                    <div class="info-tile"><span>У ролях</span><strong>{{ movie.starring }}</strong></div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <p class="lead mb-0">{{ movie.description }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pb-5" id="sessions">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div class="section-head mb-0">
+                <h2 class="mb-1">Розклад сеансів</h2>
+                <p class="text-muted mb-0">Компактний розклад по датах і залах, без зайвої пустоти.</p>
+            </div>
+            {% if hall_choices %}
+            <div class="hall-filter-wrap">
+                <a href="{% url 'cinema:movie_detail' movie.pk %}#sessions" class="hall-chip {% if not selected_hall %}active{% endif %}">Усі зали</a>
+                {% for hall in hall_choices %}
+                <a href="{% url 'cinema:movie_detail' movie.pk %}?hall={{ hall.id }}#sessions" class="hall-chip {% if selected_hall == hall.id|stringformat:'s' %}active{% endif %}">{{ hall.name }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="session-rail">
+            {% for date, sessions in grouped_sessions.items %}
+            <div class="session-rail-row">
+                <div class="session-rail-date">
+                    <div class="session-date-main">{{ date|date:"d.m" }}</div>
+                    <div class="session-date-sub">{{ date|date:"l" }}</div>
+                    <div class="session-date-count">{{ sessions|length }} сеанс(ів)</div>
+                </div>
+                <div class="session-rail-slots">
+                    {% for session in sessions %}
+                    <a href="{% url 'cinema:booking_create' session.id %}" class="slot-card text-decoration-none">
+                        <div class="slot-top">
+                            <span class="slot-time">{{ session.start_at|date:"H:i" }}</span>
+                            <span class="slot-price">{{ session.price }} грн</span>
+                        </div>
+                        <div class="slot-meta">{{ session.hall.name }}{% if session.format_name %} • {{ session.format_name }}{% endif %}</div>
+                        <div class="slot-bottom">
+                            <span>Вільно {{ session.available_seats }}</span>
+                            <span class="slot-action">Бронювати</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">Для цього фільму ще немає активних сеансів.</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Афіша | CinemaFlow{% endblock %}
+
+{% block content %}
+<section class="py-5" id="catalog">
+    <div class="container">
+        <div class="poster-page-head mb-4">
+            <div>
+                <h1 class="mb-2">Афіша фільмів</h1>
+                <p class="text-muted mb-0">Окрема сторінка для швидкого перегляду фільмів, фільтрів і переходу до розкладу.</p>
+            </div>
+        </div>
+
+        <div class="filter-panel sticky-filter mb-4">
+            <form method="get" action="{% url 'cinema:movie_list' %}#catalog" class="row g-3 align-items-end">
+                <div class="col-lg-4">
+                    <label class="form-label" for="{{ filter_form.q.id_for_label }}">Пошук</label>
+                    {{ filter_form.q }}
+                </div>
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label" for="{{ filter_form.genre.id_for_label }}">Жанр</label>
+                    {{ filter_form.genre }}
+                </div>
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label" for="{{ filter_form.hall.id_for_label }}">Зал</label>
+                    {{ filter_form.hall }}
+                </div>
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label" for="{{ filter_form.date.id_for_label }}">Дата</label>
+                    {{ filter_form.date }}
+                </div>
+                <div class="col-md-3 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-primary">Показати</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="catalog-head d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+            <div>
+                <h2 class="mb-1">У прокаті</h2>
+                <p class="text-muted mb-0">Вибери фільм і переходь до сеансів та бронювання.</p>
+            </div>
+            <div class="small text-muted">Знайдено: {{ page_obj.paginator.count }}</div>
+        </div>
+
+        <div class="row g-4">
+            {% for movie in movies %}
+            <div class="col-md-6 col-xl-3">
+                <div class="card movie-card h-100">
+                    {% if movie.poster_url %}
+                    <img src="{{ movie.poster_url }}" class="card-img-top movie-poster" alt="{{ movie.title }}">
+                    {% else %}
+                    <div class="movie-poster placeholder-poster d-flex align-items-center justify-content-center">Немає постера</div>
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between gap-2 mb-2">
+                            <span class="badge text-bg-warning">{{ movie.genre.name }}</span>
+                            <span class="small text-muted">{{ movie.age_rating }}</span>
+                        </div>
+                        <h2 class="h5 text-dark">{{ movie.title }}</h2>
+                        <p class="text-muted small mb-2">{{ movie.duration_minutes }} хв • {{ movie.release_year|default:movie.release_date|date:"Y" }}</p>
+                        <p class="card-text text-body-secondary flex-grow-1">{{ movie.description|truncatechars:110 }}</p>
+                        <a href="{{ movie.get_absolute_url }}" class="btn btn-dark mt-2">Розклад і деталі</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">За поточними фільтрами фільмів не знайдено.</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+        <nav class="pt-4" aria-label="Pagination">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.hall %}&hall={{ request.GET.hall }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}#catalog">Назад</a>
+                </li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.hall %}&hall={{ request.GET.hall }}{% endif %}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}#catalog">Далі</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    if (window.location.search && !window.location.hash) {
+        const catalog = document.getElementById("catalog");
+        if (catalog) {
+            catalog.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+</script>
+{% endblock %}

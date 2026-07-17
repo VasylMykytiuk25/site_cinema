@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Профіль | CinemaFlow{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 justify-content-center align-items-start profile-layout">
+            <div class="col-xl-4 col-lg-5">
+                <div class="info-panel h-100 profile-summary-panel">
+                    <div class="section-head compact-head">
+                        <h2>Профіль користувача</h2>
+                        <p>Ці дані використовуються як основа для бронювання та зручнішого обліку.</p>
+                    </div>
+                    <div class="profile-summary">
+                        <div class="profile-line">
+                            <span>Користувач</span>
+                            <strong>{{ request.user.username }}</strong>
+                        </div>
+                        <div class="profile-line">
+                            <span>Email</span>
+                            <strong>{{ request.user.email|default:"—" }}</strong>
+                        </div>
+                        <div class="profile-line">
+                            <span>Імʼя</span>
+                            <strong>{{ request.user.profile.full_name|default:"—" }}</strong>
+                        </div>
+                        <div class="profile-line">
+                            <span>Телефон</span>
+                            <strong>{{ request.user.profile.phone_number|default:"—" }}</strong>
+                        </div>
+                        <div class="profile-line">
+                            <span>Вік</span>
+                            <strong>{{ request.user.profile.age|default:"—" }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6 col-lg-7">
+                <div class="auth-card profile-form-card mx-0">
+                    <h1 class="h3 mb-4">Редагування профілю</h1>
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        <div class="col-12 d-flex gap-3 pt-2">
+                            <button type="submit" class="btn btn-primary">Зберегти</button>
+                            <a href="{% url 'dashboard:my_bookings' %}" class="btn btn-outline-dark">Мої бронювання</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

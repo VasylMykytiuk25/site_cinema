@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Вхід | CinemaFlow{% endblock %}
+
+{% block content %}
+<section class="auth-section py-5">
+    <div class="container">
+        <div class="auth-card mx-auto">
+            <h1 class="h3 mb-4 text-center">Вхід до акаунта</h1>
+            <form method="post" class="d-grid gap-3">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <div>
+                    <label class="form-label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                    {{ form.username }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                    {{ form.password }}
+                </div>
+                <button type="submit" class="btn btn-primary">Увійти</button>
+            </form>
+            <p class="small text-muted mt-3 mb-0 text-center">Ще немає акаунта? <a href="{% url 'dashboard:register' %}">Зареєструватися</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

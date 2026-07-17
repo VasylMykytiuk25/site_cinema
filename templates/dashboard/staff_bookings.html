@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель бронювань | CinemaFlow{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div>
+                <h1 class="h2 mb-1">Панель бронювань</h1>
+                <p class="text-muted mb-0">Перегляд, підтвердження і скасування користувацьких бронювань.</p>
+            </div>
+            <a href="/admin/" class="btn btn-outline-dark">Відкрити Django Admin</a>
+        </div>
+
+        <div class="filter-panel mb-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Статус</label>
+                    <select id="status" name="status" class="form-select">
+                        <option value="">Усі статуси</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary">Фільтрувати</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="d-grid gap-3">
+            {% for booking in bookings %}
+            <div class="booking-item">
+                <div class="row g-3 align-items-center">
+                    <div class="col-xl-3">
+                        <div class="small text-muted">Користувач</div>
+                        <strong>{{ booking.user.username }}</strong>
+                    </div>
+                    <div class="col-xl-3">
+                        <div class="small text-muted">Фільм і сеанс</div>
+                        <strong>{{ booking.session.movie.title }}</strong>
+                        <div class="small text-muted">{{ booking.session.start_at|date:"d.m.Y H:i" }} • {{ booking.session.hall.name }}{% if booking.session.format_name %} • {{ booking.session.format_name }}{% endif %}</div>
+                    </div>
+                    <div class="col-xl-2">
+                        <div class="small text-muted">Місця</div>
+                        <strong>{% for seat in booking.seats.all %}{{ seat.row_number }}-{{ seat.seat_number }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong>
+                    </div>
+                    <div class="col-xl-2">
+                        <div class="small text-muted">Статус</div>
+                        <span class="status-badge status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                    </div>
+                    <div class="col-xl-2 text-xl-end">
+                        <div class="fw-bold mb-2">{{ booking.total_price }} грн</div>
+                        <div class="d-flex flex-wrap justify-content-xl-end gap-2">
+                            {% if booking.status != 'confirmed' %}
+                            <form method="post" action="{% url 'dashboard:staff_booking_update' booking.pk 'confirm' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm">Підтвердити</button>
+                            </form>
+                            {% endif %}
+                            {% if booking.status != 'cancelled' %}
+                            <form method="post" action="{% url 'dashboard:staff_booking_update' booking.pk 'cancel' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Скасувати</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">Бронювань за поточним фільтром не знайдено.</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

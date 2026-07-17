@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Мої бронювання | CinemaFlow{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+            <div>
+                <h1 class="h2 mb-1">Мої бронювання</h1>
+                <p class="text-muted mb-0">Тут зберігаються всі бронювання, оформлені з твого акаунта.</p>
+            </div>
+            <a href="{% url 'cinema:movie_list' %}" class="btn btn-outline-dark">Повернутися до афіші</a>
+        </div>
+
+        <div class="d-grid gap-3">
+            {% for booking in bookings %}
+            <div class="booking-item">
+                <div class="row g-3 align-items-center">
+                    <div class="col-lg-4">
+                        <div class="small text-muted">Фільм</div>
+                        <strong>{{ booking.session.movie.title }}</strong>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="small text-muted">Сеанс</div>
+                        <strong>{{ booking.session.start_at|date:"d.m.Y H:i" }}</strong>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="small text-muted">Зал</div>
+                        <strong>{{ booking.session.hall.name }}{% if booking.session.format_name %} • {{ booking.session.format_name }}{% endif %}</strong>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="small text-muted">Місця</div>
+                        <strong>
+                            {% for seat in booking.seats.all %}
+                                {{ seat.row_number }}-{{ seat.seat_number }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </strong>
+                    </div>
+                    <div class="col-lg-2 text-lg-end">
+                        <span class="status-badge status-{{ booking.status }} mb-2 d-inline-block">{{ booking.get_status_display }}</span>
+                        <div><strong>{{ booking.total_price }} грн</strong></div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">У тебе ще немає бронювань. Почни з вибору фільму в афіші.</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Реєстрація | CinemaFlow{% endblock %}
+
+{% block content %}
+<section class="auth-section py-5">
+    <div class="container">
+        <div class="auth-card mx-auto">
+            <h1 class="h3 mb-4 text-center">Створення акаунта</h1>
+            <form method="post" class="d-grid gap-3">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                {% for field in form %}
+                <div>
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Зареєструватися</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
